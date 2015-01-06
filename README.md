@@ -21,13 +21,13 @@ General pipeline
 1. Map with `STAR` or another local aligner against the genome.
 2. Use `extractSoftclipped` on the resulting BAM file to create fastq files of the soft-clipped regions.
 3. Download and filter the output from RepeatMasker from UCSC or another source. Filtering could be done as follows (piping to `sed` is only needed if you aligned to an Ensembl reference):
-```bash
-head -n 2 1/chr1.fa.out
-for chrom in ls */
-do
-    awk 'BEGIN{OFS="\t"}{if(NR>3) print $5,$6,$7,$11}' $chrom/*.out | sed 's/chr//g' >> rmask.bed
-done
-```
+
+    head -n 2 1/chr1.fa.out
+    for chrom in ls */
+    do
+        awk 'BEGIN{OFS="\t"}{if(NR>3) print $5,$6,$7,$11}' $chrom/*.out | sed 's/chr//g' >> rmask.bed
+    done
+
 4. Extract the repeat sequences with `bed2fasta.py` using the just BED file from step 3. Note that this is a VERY slow program and should probably just be rewritten. One could alternatively just use `bedtools getfasta -name`, which is probably faster.
 5. Align those results with bowtie1 or another short-read aligner to the repeat sequences.
 6. Run `compactRepeats` on the resulting BAM file to create a quality controlled list in BED format of putative insertion sites.
