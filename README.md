@@ -35,11 +35,24 @@ General pipeline
 8. Use `awk` to filter each sample's insertion sites by repeat type.
 9. Use `filter.py` to produce a BED file of only sites with at least two supporting alignments. A repeat type must be specified.
 
+A more detailed example
+-----------------------
+
+Below are the exact commands used to process a single example sample. The fastq file isn't provided as this is meant to simply be an illustrative example.
+
+1. Align with `STAR` (note that multiple samples would be processed in this manner, so the index isn't unloaded until completion):
+
+    STAR --genomeDir indexes --genomeLoad LoadAndKeep --outSAMstrandField intronMotif --outFilterMultimapNmax 2 --outSAMattributes Standard --readFilesCommand zcat --readFilesIn foo.fq.gz --outFileNamePrefix foo --outStd SAM | samtools view -Sbo foo.bam -
+
+2. Extract the soft-clipped sequences in fastq format:
+
+    
+
 Comparisons between groups or samples
 -------------------------------------
 
 A common goal is to find insertion sites unique to a given group of samples. This can be done as follows:
 
-    compareGroups.py Sample1.bed,Sample2.bed Sample3.bed,Sample4.bed All.bed > unique.bed
+    compareGroups Sample1.bed,Sample2.bed Sample3.bed,Sample4.bed All.bed > unique.bed
 
-Comparisons between samples can be done in a similar way, by specifying only a single file in one or both groups.
+Note that `compareGroups` requires that the BED files are sorted in lexicographic order. Comparisons between samples can be done in a similar way, by specifying only a single file in one or both groups.
