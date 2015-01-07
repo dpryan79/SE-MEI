@@ -1,4 +1,3 @@
-//gcc -Wall -o ~/bin/compactRepeats -I/home/ryand/include compactRepeats.c /home/ryand/lib/libhts.a -lz -lpthread
 #include "htslib/sam.h"
 #include "htslib/bgzf.h"
 #include <stdlib.h>
@@ -116,8 +115,6 @@ int main(int argc, char *argv[]) {
         usage(argv[0]);
         return -1;
     }
-
-    //if(nthreads > 1) bgzf_mt(obam->fp.bgzf, nthreads, 256);
 
     //Allocate the stack that'll hold the mappings
     m_stack = 100;

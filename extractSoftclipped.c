@@ -1,4 +1,3 @@
-//gcc -Wall -o ~/bin/extractSoftclipped -I/home/ryand/include extractSoftclipped.c /home/ryand/lib/libhts.a -lz -lpthread
 #include "htslib/sam.h"
 #include "htslib/bgzf.h"
 #include <stdlib.h>
