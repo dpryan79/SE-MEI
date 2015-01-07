@@ -20,7 +20,7 @@ lastStart = None
 lastStop = None
 lastCount = 0
 for line in csv.reader(open(args.ifile, "r"), dialect="excel-tab") :
-    if(line[3] != type) :
+    if(line[3] != args.type) :
         continue
 
     if(line[4] == lastID) :

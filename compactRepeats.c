@@ -42,6 +42,7 @@ void processStack(bam1_t **reads, int l, double threshold, bam_hdr_t *header, in
     int i, n_elements, pos = 0, n_above = 0, pos2;
     double *counts;
     char *p;
+
     for(i=0; i<l; i++) tids[i] = reads[i]->core.tid;
     qsort(tids, l, sizeof(int32_t), sort_func);
     n_elements = countElements(tids, l);
@@ -62,6 +63,7 @@ void processStack(bam1_t **reads, int l, double threshold, bam_hdr_t *header, in
         printf("%i\t%i\t%s\n", ((pos2-rlen<0) ?0:pos2-rlen), pos2+rlen, header->target_name[tid_id[i]]);
     }
     free(tid_id);
+    free(counts);
 }
 
 void usage(char *prog) {
@@ -130,6 +132,7 @@ int main(int argc, char *argv[]) {
     read = bam_init1();
     while(sam_read1(ifile, header, read) >= 0) {
         if(!lname) lname = strdup(bam_get_qname(read));
+        if(read->core.flag & BAM_FUNMAP) continue;
         if(strcmp(lname, bam_get_qname(read)) == 0) {
             if(l_stack >= m_stack) {
                 m_stack *= 2;

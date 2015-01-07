@@ -32,21 +32,52 @@ General pipeline
 5. Align those results with bowtie1 or another short-read aligner to the repeat sequences.
 6. Run `compactRepeats` on the resulting BAM file to create a quality controlled list in BED format of putative insertion sites.
 7. Use `bedtools cluster` to group insertion sites into clusters. Ensure that the input is sorted (bedtools can be used for this).
-8. Use `awk` to filter each sample's insertion sites by repeat type.
-9. Use `filter.py` to produce a BED file of only sites with at least two supporting alignments. A repeat type must be specified.
+8. Use `filter.py` to produce a BED file of only sites with at least two supporting alignments. A repeat type must be specified, since the output only contains a single repeat type.
 
 A more detailed example
 -----------------------
 
 Below are the exact commands used to process a single example sample. The fastq file isn't provided as this is meant to simply be an illustrative example.
 
-1. Align with `STAR` (note that multiple samples would be processed in this manner, so the index isn't unloaded until completion):
+1. Align with `STAR` (note that multiple samples would be processed in this manner, so the index, which we assume has already been created, isn't unloaded until completion):
 
     STAR --genomeDir indexes --genomeLoad LoadAndKeep --outSAMstrandField intronMotif --outFilterMultimapNmax 2 --outSAMattributes Standard --readFilesCommand zcat --readFilesIn foo.fq.gz --outFileNamePrefix foo --outStd SAM | samtools view -Sbo foo.bam -
 
 2. Extract the soft-clipped sequences in fastq format:
 
-    
+    extractSoftclipped foo.bam > foo.fq.gz
+
+3. Download, filter and merge RepeatMasker sequences from UCSC (this example uses a mouse dataset and extract only LINE/L1 and SINE/Alu regions):
+
+    wget --quiet http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/chromOut.tar.gz
+    tar xf chromOut.tar.gz
+    for d in `ls -d */`
+    do
+        awk '{if(NR>3 && ($11=="LINE/L1" || $11=="SINE/Alu")) printf("%s\t%s\t%s\t%s\n",$5,$6,$7,$11)}' $d/*.out | sed -e 's/chr//g' >> rmask.bed #Convert UCSC to Ensembl chromosome names
+    done
+
+4. Extract the genomic sequence of the repeat regions:
+
+    bed2fasta.py rmask.bed reference.fa > rmask.fa
+    #Alternatively:
+    bedtools getfasta -name -fi reference.fa -bed rmask.bed -fo /dev/stdout | fold -w 60 > rmask.fa #This is faster than `bed2fasta.py`
+
+5. Index and align to the repeat regions (with bowtie1 in this example):
+
+    bowtie-build rmask.fa rmask
+    bowtie -a --best --strata -p 6 rmask <(zcat foo.fq.gz) -S | samtools view -Sbo foo.bam - #You can ignore the "duplicated sequence" warnings
+
+6. Perform a bit of QC and sort the sites:
+
+    compactRepeats foo.bam | bedtools sort > foo.bed #This could be merged with step 5 by specifying "-" as the input file.
+
+7. Group reads into clusters (with multiple samples, concatenate the output from step 6 of each sample and then use `bedtools sort` before clustering):
+
+    bedtools cluster -d 50 foo.bed > foo.clustered.bed
+
+8. Produce unique insertions of a single type
+
+    filter.py foo.clustered.bed "LINE/L1" foo.LINE.bed
 
 Comparisons between groups or samples
 -------------------------------------
