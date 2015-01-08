@@ -27,7 +27,12 @@ FILE ** parseList(char *s, int *l) {
     //Fill in the file pointer list
     p = strtok(s, ",");
     while(p) {
-        fps[i++] = fopen(p, "r");
+        fps[i] = NULL;
+        fps[i] = fopen(p, "r");
+        if(!fps[i++]) {
+            fprintf(stderr, "Error: couldn't open %s!\n", p);
+            assert(1==0);
+        }
         p = strtok(NULL, ",");
     }
 
