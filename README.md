@@ -9,6 +9,7 @@ Requirements
  * The pysam python module
  * bowtie1 or another short read aligner.
  * A local aligner, like STAR.
+ * htslib 1.1, which is a submodule
 
 Compilation
 -----------
